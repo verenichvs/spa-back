@@ -31,8 +31,6 @@ export class CommentsController {
     const image = file;
     const id = parrentCommentId;
 
-    console.log(user.email);
-
     let comment = new CreateCommentDto();
     if (image) {
       comment.file = image.buffer;
