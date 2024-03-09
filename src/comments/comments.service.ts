@@ -53,8 +53,6 @@ export class CommentsService {
       /<a\s[^>]*href=(['"])(.*?)\1[^>]*>|<code>|<\/code>|<i>|<\/i>|<strong>|<\/strong>/g;
     const isValidHtml = htmlTagsRegex.test(text);
     const closeTags = await this.closedTags(text);
-    console.log(closeTags);
-    console.log(isValidHtml);
     return isValidHtml && closeTags;
   }
 
