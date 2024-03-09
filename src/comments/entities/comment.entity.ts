@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity()
@@ -19,11 +26,17 @@ export class CommentEntity {
   user: User;
 
   @Column({
-    type: 'bytea',
+    // type: 'bytea',
     nullable: true,
   })
-  file?: Buffer;
+  file?: string;
 
   @Column({ nullable: true })
-  fileName: string;
+  fileName?: string;
+
+  @OneToMany(() => CommentEntity, (comment) => comment.parentCommentId, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'parentCommentId' })
+  children?: CommentEntity[];
 }

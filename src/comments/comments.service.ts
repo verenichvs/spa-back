@@ -18,6 +18,32 @@ export class CommentsService {
     private readonly commentEntityRepository: Repository<CommentEntity>,
   ) {}
 
+  async closedTags(text: string): Promise<boolean> {
+    const stack: string[] = [];
+
+    const regex = /<\/?\s*([^\s>\/]+)[^>]*>/g;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const [fullTag, tagName] = match;
+
+      if (!tagName.endsWith('/')) {
+        if (fullTag.startsWith('</')) {
+          const expectedTag = stack.pop();
+          const actualTag = tagName;
+
+          if (expectedTag !== actualTag) {
+            return false;
+          }
+        } else {
+          stack.push(tagName);
+        }
+      }
+    }
+
+    return stack.length === 0;
+  }
+
   async validateHtmlTags(text: string): Promise<boolean> {
     const hasHtmlTagsRegex = /<[a-z][\s\S]*>/i;
     if (!hasHtmlTagsRegex.test(text)) {
@@ -26,7 +52,10 @@ export class CommentsService {
     const htmlTagsRegex =
       /<a\s[^>]*href=(['"])(.*?)\1[^>]*>|<code>|<\/code>|<i>|<\/i>|<strong>|<\/strong>/g;
     const isValidHtml = htmlTagsRegex.test(text);
-    return isValidHtml;
+    const closeTags = await this.closedTags(text);
+    console.log(closeTags);
+    console.log(isValidHtml);
+    return isValidHtml && closeTags;
   }
 
   async createCommentWithoutFile(
@@ -41,11 +70,15 @@ export class CommentsService {
     const comment = await this.commentEntityRepository.create(saveCommentDto);
     return await this.commentEntityRepository.save(comment);
   }
-  async createCommentWithFile(createCommentDto: CreateCommentDto, user: User) {
+  async createCommentWithFile(
+    createCommentDto: CreateCommentDto,
+    user: User,
+    file: string,
+  ) {
     let saveCommentDto = new SaveCommentDto();
     saveCommentDto.user = user;
     saveCommentDto.text = createCommentDto.text;
-    saveCommentDto.file = createCommentDto.file;
+    saveCommentDto.file = file;
     saveCommentDto.fileName = createCommentDto.fileName;
     saveCommentDto.parentCommentId = createCommentDto.parentCommentId;
 
@@ -89,7 +122,12 @@ export class CommentsService {
       if (createCommentDto.file.length > maxSizeInBytes) {
         throw new BadRequestException('File size exceeds the limit (100 KB)');
       }
-      return await this.createCommentWithFile(createCommentDto, user);
+      const base64String = createCommentDto.file.toString('base64');
+      return await this.createCommentWithFile(
+        createCommentDto,
+        user,
+        base64String,
+      );
     }
     if (isImage) {
       const imageBuffer = await Jimp.read(createCommentDto.file);
@@ -105,7 +143,12 @@ export class CommentsService {
           Jimp.MIME_JPEG,
         );
       }
-      return await this.createCommentWithFile(createCommentDto, user);
+      const base64String = createCommentDto.file.toString('base64');
+      return await this.createCommentWithFile(
+        createCommentDto,
+        user,
+        base64String,
+      );
     }
   }
 
@@ -139,5 +182,77 @@ export class CommentsService {
         'user.username',
       ])
       .getMany();
+  }
+
+  async getAllComments(
+    sortCommentDto: SortCommentDto,
+  ): Promise<CommentEntity[]> {
+    if (sortCommentDto.userEmailDate != UserEmailDate.DATE) {
+      const comments = await this.commentEntityRepository
+        .createQueryBuilder('comment')
+        .leftJoinAndSelect('comment.user', 'user')
+        .orderBy(sortCommentDto.userEmailDate, sortCommentDto.hl)
+        .addOrderBy('comment.createdAt', sortCommentDto.hl)
+        .select([
+          'comment.id',
+          'comment.text',
+          'comment.createdAt',
+          'comment.parentCommentId',
+          'comment.file',
+          'comment.fileName',
+          'user.id',
+          'user.email',
+          'user.username',
+        ])
+        .getMany();
+
+      const commentsWithChildren = this.buildCommentTree(comments);
+      return commentsWithChildren;
+    }
+    if (sortCommentDto.userEmailDate === UserEmailDate.DATE) {
+      const comments = await this.commentEntityRepository
+        .createQueryBuilder('comment')
+        .leftJoinAndSelect('comment.user', 'user')
+        .orderBy('comment.createdAt', sortCommentDto.hl)
+        .select([
+          'comment.id',
+          'comment.text',
+          'comment.createdAt',
+          'comment.parentCommentId',
+          'comment.file',
+          'comment.fileName',
+          'user.id',
+          'user.email',
+          'user.username',
+        ])
+        .getMany();
+
+      const commentsWithChildren = this.buildCommentTree(comments);
+      return commentsWithChildren;
+    }
+  }
+
+  private buildCommentTree(comments: CommentEntity[]): CommentEntity[] {
+    const commentMap = new Map<number, CommentEntity>();
+    const rootComments: CommentEntity[] = [];
+
+    comments.forEach((comment) => {
+      const commentWithChildren = { ...comment, children: [] };
+      commentMap.set(comment.id, commentWithChildren);
+
+      const parentCommentId = comment.parentCommentId;
+      if (parentCommentId === null || parentCommentId === undefined) {
+        // это корневой комментарий
+        rootComments.push(commentWithChildren);
+      } else {
+        // это дочерний комментарий
+        const parentComment = commentMap.get(parentCommentId);
+        if (parentComment) {
+          parentComment.children.push(commentWithChildren);
+        }
+      }
+    });
+
+    return rootComments;
   }
 }

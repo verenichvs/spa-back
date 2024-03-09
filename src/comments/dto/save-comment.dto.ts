@@ -9,5 +9,5 @@ export class SaveCommentDto {
 
   fileName?: string;
 
-  file?: Buffer;
+  file?: string;
 }

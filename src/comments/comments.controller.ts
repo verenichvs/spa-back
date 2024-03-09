@@ -31,6 +31,8 @@ export class CommentsController {
     const image = file;
     const id = parrentCommentId;
 
+    console.log(user.email);
+
     let comment = new CreateCommentDto();
     if (image) {
       comment.file = image.buffer;
@@ -48,5 +50,9 @@ export class CommentsController {
   @Get('sort')
   async findBy(@Body() sortCommentDto: SortCommentDto) {
     return await this.commentsService.findBy(sortCommentDto);
+  }
+  @Get('comment')
+  async getComment(@Body() sortCommentDto: SortCommentDto) {
+    return await this.commentsService.getAllComments(sortCommentDto);
   }
 }
