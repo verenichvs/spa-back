@@ -19,7 +19,7 @@ export class CommentsService {
   ) {}
 
   async closedTags(text: string): Promise<boolean> {
-    const stack: string[] = [];
+    let openTagsCount = 0;
 
     const regex = /<\/?\s*([^\s>\/]+)[^>]*>/g;
     let match;
@@ -27,21 +27,24 @@ export class CommentsService {
     while ((match = regex.exec(text)) !== null) {
       const [fullTag, tagName] = match;
 
-      if (!tagName.endsWith('/')) {
-        if (fullTag.startsWith('</')) {
-          const expectedTag = stack.pop();
-          const actualTag = tagName;
-
-          if (expectedTag !== actualTag) {
-            return false;
-          }
-        } else {
-          stack.push(tagName);
+      if (fullTag.startsWith('</')) {
+        if (openTagsCount === 0) {
+          // Закрывающий тег без соответствующего открывающего тега
+          return false;
         }
+        openTagsCount--;
+      } else if (!fullTag.endsWith('/')) {
+        openTagsCount++;
       }
     }
 
-    return stack.length === 0;
+    // Проверка на открытые теги без закрытия
+    if (openTagsCount > 0) {
+      console.log(`Открытые теги без закрытия: ${openTagsCount}`);
+      return false;
+    }
+
+    return true;
   }
 
   async validateHtmlTags(text: string): Promise<boolean> {

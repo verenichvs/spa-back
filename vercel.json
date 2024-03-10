@@ -11,21 +11,6 @@
       "src": "/(.*)",
       "dest": "src/main.ts",
       "methods": ["GET", "POST"]
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/users/users.controller.ts",
-      "methods": ["GET", "POST"]
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/comments/comments.controller.ts",
-      "methods": ["GET", "POST"]
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/auth/auth.controller.ts",
-      "methods": ["GET", "POST"]
     }
   ]
 }
