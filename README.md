@@ -1,73 +1,30 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+Установите этот репозиторий и откройте в VSCode. Запустите проект командой yarn start. Чтобы проверять приложение вместе с frontend частью - установите репозиторий https://github.com/verenichvs/spa-front откройте и после выполнения предыдущих действий следуйте указаниям из README файла spa-front репозитория. Чтобы проверить приложение только с backend частью - откройте или установите Postman (https://www.postman.com/). 
+Вам будут доступны ендпоинты:
+-регистрация - заполните поля как на картинке.![image](https://github.com/verenichvs/spa-back/assets/115184978/714718a0-fc51-4740-af92-1ef134ca483c)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+ В случае если не соблюдаются требования - вам вернётся сообщение с соответствующей ошибкой: 
+    -User Name (цифры и буквы латинского алфавита) – обязательное поле;
+    -E-mail (формат email) – обязательное поле;
+    -password (цифры и буквы латинского алфавита, минимальное количество символов 7) – обязательное поле.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+-авторизация -  после регистрации запомните email и password и заполните поля как на картинке. ![image](https://github.com/verenichvs/spa-back/assets/115184978/5ae61898-96d9-4d07-8b8c-d9ac8872871a)
 
-## Description
+Если пользователя с таким имейлом не существует или пароль не от этого аккаунта - вам вернётся сообщение с соответствующей ошибкой. Если требования соблюдены - вам вернётся сообщение с токеном который нам понадобится при добавлении коментария.![image](https://github.com/verenichvs/spa-back/assets/115184978/9e61a52d-3e4d-4d5a-8955-605934cdf883)
+- добавление коментария - воспользуйтесь токеном из предыдущего ответа и заполните поле как на картинке ниже. В случае если вы введёте несуществующий токен или не заполните поле - вы не сможете отправить коментарий, так как должны быть авторизированы для этого действия.
+![image](https://github.com/verenichvs/spa-back/assets/115184978/3065611f-1326-456f-8668-d40102ad8db2)
+заполните поля как на картинке: ![image](https://github.com/verenichvs/spa-back/assets/115184978/d8c63db2-51c5-498c-88da-4bd82ee7415c)
+    поле text - обязательное. в нём вы можете использовать такие html теги которые обязательно должны быть закрыты: ![image](https://github.com/verenichvs/spa-back/assets/115184978/305bc495-3c7e-411b-978b-0e80c17e7db6)
+      если условия не соблюдаются - вернётся ошибка.
+    поле file - не обязательно. Можно выбрать картинку или текстовый документ таких форматов: JPG, GIF, PNG, TXT. файл txt не должен превышать 100 кб(вернётся ошибка) а изображение должно быть не более 320х240 пикселей иначе       его автоматически обрежет до заданых значений.
+    поле parrentCommentId - необязательное поле. Отвечает за то, хотите вы отставить сообщение на странице или коментировать другое сообщение.
+-сортировка - возвращает только основные сообщения отсортированы по заданым параметрам: в поле userEmailDate можно выбрать критерий сортировки(по имени пользователя user.username, имейлу user.email, дате date) и выбрать в каком порядке они будут отображены( по убыванию DESC, по возрастанию ASC)  ![image](https://github.com/verenichvs/spa-back/assets/115184978/b7bb1f60-863f-4c84-bac1-19b406ff3e19)
+Для вызова сортировки  необходимо заполнить поля как на картинке:![image](https://github.com/verenichvs/spa-back/assets/115184978/f806b17d-5483-4332-b579-9eb57108b30f)
+- страница комментариев - вам возвращается древо сообщений с его дочерними коментариями. неопходимо заполнить поля как на картинке: ![image](https://github.com/verenichvs/spa-back/assets/115184978/9ed9fe70-f743-48e4-a099-67e336c20fb2)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Installation
 
-```bash
-$ yarn install
-```
 
-## Running the app
 
-```bash
-# development
-$ yarn run start
 
-# watch mode
-$ yarn run start:dev
 
-# production mode
-$ yarn run start:prod
-```
 
-## Test
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
