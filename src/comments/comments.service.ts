@@ -123,15 +123,24 @@ export class CommentsService {
       if (createCommentDto.file.length > maxSizeInBytes) {
         throw new BadRequestException('File size exceeds the limit (100 KB)');
       }
-      const base64String = createCommentDto.file.toString('base64');
+
       return await this.createCommentWithFile(
         createCommentDto,
         user,
-        base64String,
+        createCommentDto.file,
       );
     }
     if (isImage) {
-      const imageBuffer = await Jimp.read(createCommentDto.file);
+      if (mimeType === 'image/gif') {
+        createCommentDto.fileName = mimeType;
+        return await this.createCommentWithFile(
+          createCommentDto,
+          user,
+          createCommentDto.file,
+        );
+      }
+      let buffer = Buffer.from(createCommentDto.file, 'base64');
+      const imageBuffer = await Jimp.read(buffer);
       const maxWidth = 320;
       const maxHeight = 240;
 
@@ -140,11 +149,10 @@ export class CommentsService {
         imageBuffer.getHeight() > maxHeight
       ) {
         await imageBuffer.resize(maxWidth, maxHeight);
-        createCommentDto.file = await imageBuffer.getBufferAsync(
-          Jimp.MIME_JPEG,
-        );
+        buffer = await imageBuffer.getBufferAsync(Jimp.MIME_JPEG);
       }
-      const base64String = createCommentDto.file.toString('base64');
+      const base64String = buffer.toString('base64');
+      createCommentDto.fileName = mimeType;
       return await this.createCommentWithFile(
         createCommentDto,
         user,
@@ -185,52 +193,27 @@ export class CommentsService {
       .getMany();
   }
 
-  async getAllComments(
-    sortCommentDto: SortCommentDto,
-  ): Promise<CommentEntity[]> {
-    if (sortCommentDto.userEmailDate != UserEmailDate.DATE) {
-      const comments = await this.commentEntityRepository
-        .createQueryBuilder('comment')
-        .leftJoinAndSelect('comment.user', 'user')
-        .orderBy(sortCommentDto.userEmailDate, sortCommentDto.hl)
-        .addOrderBy('comment.createdAt', sortCommentDto.hl)
-        .select([
-          'comment.id',
-          'comment.text',
-          'comment.createdAt',
-          'comment.parentCommentId',
-          'comment.file',
-          'comment.fileName',
-          'user.id',
-          'user.email',
-          'user.username',
-        ])
-        .getMany();
+  async getAllComments(): Promise<CommentEntity[]> {
+    const comments = await this.commentEntityRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .orderBy('comment.createdAt', 'ASC')
+      .select([
+        'comment.id',
+        'comment.text',
+        'comment.createdAt',
+        'comment.parentCommentId',
+        'comment.file',
+        'comment.fileName',
+        'user.id',
+        'user.email',
+        'user.username',
+      ])
+      .getMany();
 
-      const commentsWithChildren = this.buildCommentTree(comments);
-      return commentsWithChildren;
-    }
-    if (sortCommentDto.userEmailDate === UserEmailDate.DATE) {
-      const comments = await this.commentEntityRepository
-        .createQueryBuilder('comment')
-        .leftJoinAndSelect('comment.user', 'user')
-        .orderBy('comment.createdAt', sortCommentDto.hl)
-        .select([
-          'comment.id',
-          'comment.text',
-          'comment.createdAt',
-          'comment.parentCommentId',
-          'comment.file',
-          'comment.fileName',
-          'user.id',
-          'user.email',
-          'user.username',
-        ])
-        .getMany();
+    const commentsWithChildren = this.buildCommentTree(comments);
 
-      const commentsWithChildren = this.buildCommentTree(comments);
-      return commentsWithChildren;
-    }
+    return commentsWithChildren;
   }
 
   private buildCommentTree(comments: CommentEntity[]): CommentEntity[] {

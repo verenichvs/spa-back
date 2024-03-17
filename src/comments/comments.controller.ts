@@ -14,10 +14,17 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { SortCommentDto } from './dto/sorting-comment.dto';
 import { UserDecorator } from '../auth/decorators/user.decorator';
+import { CommentsGateway } from './comments.gateway';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Controller('comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(
+    private readonly commentsService: CommentsService,
+    private readonly commentsGateway: CommentsGateway,
+    @InjectQueue('comments') private readonly commentsQueue: Queue,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('add')
@@ -33,8 +40,12 @@ export class CommentsController {
 
     let comment = new CreateCommentDto();
     if (image) {
-      comment.file = image.buffer;
+      const base64String = image.buffer.toString('base64');
+      comment.file = base64String;
       comment.fileName = image.originalname;
+    }
+    if (!text) {
+      return 'Ошибка: parentCommentId не является числом';
     }
     comment.text = text;
     if (id) {
@@ -43,14 +54,21 @@ export class CommentsController {
       }
       comment.parentCommentId = parrentCommentId;
     }
-    return await this.commentsService.create(comment, user);
+
+    // return await this.commentsService.create(comment, user);
+    const job = await this.commentsQueue.add('createComment', {
+      comment,
+      user,
+    });
+    await job.finished();
+    return 'Комментарий успешно создан.';
   }
   @Get('sort')
   async findBy(@Body() sortCommentDto: SortCommentDto) {
     return await this.commentsService.findBy(sortCommentDto);
   }
   @Get('comment')
-  async getComment(@Body() sortCommentDto: SortCommentDto) {
-    return await this.commentsService.getAllComments(sortCommentDto);
+  async getComment() {
+    this.commentsGateway.handleGetComments(null);
   }
 }

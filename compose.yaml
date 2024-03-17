@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  redis-cache:
+    image: redis:latest
+    container_name: my-redis-cache
+    ports:
+      - '6379:6379'
+  db:
+    container_name: mocker
+    image: postgres:15
+    ports:
+      - ${DATABASE_PORT}:5432
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DB}
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+  app:
+    container_name: mocker-interview
+    build: . # Путь к Dockerfile вашего приложения
+    ports:
+      - '4000:4000' # Предполагается, что ваше приложение слушает на порту 3000
+    depends_on:
+      - db
+      - redis-cache
+
+volumes:
+  pgdata:
+  redis-data:
