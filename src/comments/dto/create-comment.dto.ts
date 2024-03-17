@@ -5,5 +5,5 @@ export class CreateCommentDto {
 
   fileName?: string;
 
-  file?: Buffer;
+  file?: string;
 }
