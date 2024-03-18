@@ -29,7 +29,6 @@ export class CommentsService {
 
       if (fullTag.startsWith('</')) {
         if (openTagsCount === 0) {
-          // Закрывающий тег без соответствующего открывающего тега
           return false;
         }
         openTagsCount--;
@@ -38,9 +37,7 @@ export class CommentsService {
       }
     }
 
-    // Проверка на открытые теги без закрытия
     if (openTagsCount > 0) {
-      console.log(`Открытые теги без закрытия: ${openTagsCount}`);
       return false;
     }
 
@@ -226,10 +223,8 @@ export class CommentsService {
 
       const parentCommentId = comment.parentCommentId;
       if (parentCommentId === null || parentCommentId === undefined) {
-        // это корневой комментарий
         rootComments.push(commentWithChildren);
       } else {
-        // это дочерний комментарий
         const parentComment = commentMap.get(parentCommentId);
         if (parentComment) {
           parentComment.children.push(commentWithChildren);
