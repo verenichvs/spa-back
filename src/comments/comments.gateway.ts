@@ -16,11 +16,7 @@ export class CommentsGateway
   @WebSocketServer()
   server: Server;
   handleConnection(client: Socket) {
-    // Enable CORS for WebSocket
-    this.server.emit('headers', {
-      'Access-Control-Allow-Origin': process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
-      'Access-Control-Allow-Credentials': 'true',
-    });
+    this.server.emit;
   }
   constructor(private readonly commentsService: CommentsService) {}
   handleDisconnect(client: any) {
@@ -34,6 +30,6 @@ export class CommentsGateway
   @SubscribeMessage('getComments')
   async handleGetComments(client: any) {
     const comments = await this.commentsService.getAllComments();
-    this.server.emit('comments', comments); // Отправляем комментарии клиенту через WebSocket
+    this.server.emit('comments', comments);
   }
 }

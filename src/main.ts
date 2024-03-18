@@ -9,7 +9,7 @@ async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
   const corsOptions: CorsOptions = {
-    origin: process.env.FRONTEND_APPLICATION, // Укажите ваше фронтенд-приложение
+    origin: process.env.FRONTEND_APPLICATION,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type,Authorization,Access-Control-Allow-Origin',
     credentials: true,
@@ -17,9 +17,6 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
   app.useWebSocketAdapter(new SocketIoAdapter(app));
-
-  // const httpAdapter = app.getHttpAdapter();
-  // app.useWebSocketAdapter(new IoAdapter(httpAdapter));
   await app.listen(4000);
 }
 bootstrap();

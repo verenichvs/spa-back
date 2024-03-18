@@ -26,7 +26,6 @@ export class CommentEntity {
   user: User;
 
   @Column({
-    // type: 'bytea',
     nullable: true,
   })
   file?: string;

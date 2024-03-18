@@ -55,7 +55,6 @@ export class CommentsController {
       comment.parentCommentId = parrentCommentId;
     }
 
-    // return await this.commentsService.create(comment, user);
     const job = await this.commentsQueue.add('createComment', {
       comment,
       user,
